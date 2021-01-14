@@ -6,17 +6,18 @@
 #include <math.h>
 
 #define PI 3.14159265358979323846
+#define g 2
 
 typedef struct _FLOATING_COORD {
     double X;
     double Y;
 } FLOATING_COORD;
 
-const double speed_start = 10;
+const double speed_start = 50;
 const FLOATING_COORD pos_start = {5, 10};
-const double angle_start = PI + PI /2 + PI / 4;
+const double angle_start = PI / 4;
 const double mass = 20;
-const double u = 0;
+const double u = 0.1;
 const double width = 140;
 const double timestep = 0.01; // s
 
@@ -27,13 +28,24 @@ FLOATING_COORD pos;
 double angle;
 double font_ratio;
 
+short actual_width;
+short actual_height;
+
 COORD toCoord(FLOATING_COORD fc) {
     COORD c = {(short) fc.X, (short) (fc.Y * font_ratio)};
     return c;
 }
 
-void move(HANDLE hOutput) {
-    double dist = speed * timestep;
+bool move(HANDLE hOutput) {
+    double acc = - u * mass * g;
+    double dist = speed * timestep + acc * timestep * timestep / 2;
+    speed += acc * timestep;
+
+    if (speed < 0) {
+        speed = 0;
+        return false;
+    }
+
     double dx, dy;
 
     if (angle >= 0 && angle < PI / 2) {
@@ -62,6 +74,23 @@ void move(HANDLE hOutput) {
     pos = new_pos;
 
     if (old_coord.X != new_coord.X || old_coord.Y != new_coord.Y) {
+        if (new_coord.X < 0) {
+            new_coord.X = 0;
+            angle = 3 * PI - angle;
+        }
+        else if (new_coord.Y < 0) {
+            new_coord.Y = 0;
+            angle = 2 * PI - angle;
+        }
+        else if (new_coord.X >= actual_width + 1) {
+            new_coord.X = actual_width;
+            angle = PI - angle;
+        }
+        else if (new_coord.Y >= actual_height + 1) {
+            new_coord.Y = actual_height;
+            angle = 2 * PI - angle;
+        }
+
         SetConsoleCursorPosition(hOutput, old_coord);
         WriteConsole( hOutput, " ", 1, NULL, NULL );
 
@@ -70,6 +99,8 @@ void move(HANDLE hOutput) {
 
         SetConsoleCursorPosition(hOutput, hide_coord);
     }
+
+    return true;
 }
 
 void main( void )
@@ -114,7 +145,11 @@ void main( void )
     {
         Status = GetLastError();
     }
+    
+    GetConsoleScreenBufferInfo(hOutput, &SBInfo);
 
+    actual_width = SBInfo.srWindow.Right;
+    actual_height = SBInfo.srWindow.Bottom;
 
     // int x = GetSystemMetrics(SM_CXMIN);
     // int y = GetSystemMetrics(SM_CYMIN);
@@ -129,11 +164,10 @@ void main( void )
     SetConsoleCursorPosition( hOutput, sPos );
 
     // Set the color to bright green
-    // SetConsoleTextAttribute( hOutput,
-    // FOREGROUND_INTENSITY | FOREGROUND_GREEN );
+    SetConsoleTextAttribute( hOutput,
+    FOREGROUND_INTENSITY | FOREGROUND_GREEN );
 
-    while (true) {
-        move(hOutput);
+    while (move(hOutput)) {
         Sleep(timestep * 1000);
     }
 
