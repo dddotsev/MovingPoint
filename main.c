@@ -6,19 +6,19 @@
 #include <math.h>
 
 #define PI 3.14159265358979323846
-#define g 2
+#define g 1
 
 typedef struct _FLOATING_COORD {
     double X;
     double Y;
 } FLOATING_COORD;
 
-const double speed_start = 50;
+const double speed_start = 20;
 const FLOATING_COORD pos_start = {5, 10};
 const double angle_start = PI / 4;
 const double mass = 20;
 const double u = 0.1;
-const double width = 140;
+const double width = 70;
 const double timestep = 0.01; // s
 
 const COORD hide_coord = {0, 0};
@@ -105,8 +105,6 @@ bool move(HANDLE hOutput) {
 
 void main( void )
 {
-    // scanf("\n");
-
     // TODO: enter width from console
     speed = speed_start; // TODO: enter from console
     angle = angle_start; // TODO: enter from console
@@ -115,49 +113,13 @@ void main( void )
 
     HANDLE hOutput = (HANDLE)GetStdHandle( STD_OUTPUT_HANDLE );
 
-    CONSOLE_FONT_INFO info;
-    GetCurrentConsoleFont(hOutput, false, &info);
-    COORD font_size = GetConsoleFontSize(hOutput, info.nFont);
-
-    font_ratio = (float)font_size.X / font_size.Y;
-
-    // SMALL_RECT size;
-    // size.Top = 0;
-    // size.Left = 0;
-    // size.Bottom = 50;
-    // size.Right = 100;
-    // SetConsoleWindowInfo(hOutput, true, &size);
     CONSOLE_SCREEN_BUFFER_INFO SBInfo;
-    GetConsoleScreenBufferInfo(hOutput, &SBInfo);
-
-    SBInfo.srWindow.Right = width;
-    SBInfo.srWindow.Bottom = width * font_ratio;
-
-    // TODO: fix buffer to remove scroll bars
-    // COORD size_c;
-    // size_c.X = SBInfo.srWindow.Right + 1 / font_ratio;
-    // size_c.Y = SBInfo.srWindow.Bottom + 1;
-    // SetConsoleScreenBufferSize(hOutput, size_c);
-
-    int Status = SetConsoleWindowInfo(hOutput, true, &SBInfo.srWindow);
-
-    if (Status == 0)
-    {
-        Status = GetLastError();
-    }
     
     GetConsoleScreenBufferInfo(hOutput, &SBInfo);
 
     actual_width = SBInfo.srWindow.Right;
     actual_height = SBInfo.srWindow.Bottom;
 
-    // int x = GetSystemMetrics(SM_CXMIN);
-    // int y = GetSystemMetrics(SM_CYMIN);
-
-
-
-
-    // Set the text output position to (5,10)
     COORD sPos;
     sPos.X = 5;
     sPos.Y = 10;
@@ -166,6 +128,12 @@ void main( void )
     // Set the color to bright green
     SetConsoleTextAttribute( hOutput,
     FOREGROUND_INTENSITY | FOREGROUND_GREEN );
+
+    CONSOLE_FONT_INFO info;
+    GetCurrentConsoleFont(hOutput, false, &info);
+    COORD font_size = GetConsoleFontSize(hOutput, info.nFont);
+
+    font_ratio = (float)font_size.X / font_size.Y;
 
     while (move(hOutput)) {
         Sleep(timestep * 1000);
