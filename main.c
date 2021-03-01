@@ -14,20 +14,18 @@ typedef struct _FLOATING_COORD {
 } FLOATING_COORD;
 
 const FLOATING_COORD pos_start = {5, 10};
-const double width = 70;
 const double timestep = 0.01; // s
 
 const COORD hide_coord = {0, 0};
 
-double mass = 20;
-double u = 0.1;
+double mass;
+double u;
 double speed;
 FLOATING_COORD pos;
 double angle;
 double font_ratio;
 
-short actual_width;
-short actual_height;
+short actual_width, actual_height;
 
 COORD toCoord(FLOATING_COORD fc) {
     COORD c = {(short) fc.X, (short) (fc.Y * font_ratio)};
@@ -45,7 +43,6 @@ bool move(HANDLE hOutput) {
     }
 
     double dx, dy;
-
     if (angle >= 0 && angle < PI / 2) {
         dx = cos(angle) * dist;
         dy = -sin(angle) * dist;
@@ -65,43 +62,45 @@ bool move(HANDLE hOutput) {
         dx = cos(current_angle) * dist;
         dy = sin(current_angle) * dist;
     }
-
     FLOATING_COORD new_pos = {pos.X + dx, pos.Y + dy};
+
     COORD old_coord = toCoord(pos);
     COORD new_coord = toCoord(new_pos);
     pos = new_pos;
 
-    if (old_coord.X != new_coord.X || old_coord.Y != new_coord.Y) {
-        if (new_coord.X < 0) {
-            new_coord.X = 0;
-            angle = 3 * PI - angle;
-        }
-        else if (new_coord.Y < 0) {
-            new_coord.Y = 0;
-            angle = 2 * PI - angle;
-        }
-        else if (new_coord.X >= actual_width + 1) {
-            new_coord.X = actual_width;
-            angle = PI - angle;
-        }
-        else if (new_coord.Y >= actual_height + 1) {
-            new_coord.Y = actual_height;
-            angle = 2 * PI - angle;
-        }
-
-        SetConsoleCursorPosition(hOutput, old_coord);
-        WriteConsole( hOutput, " ", 1, NULL, NULL );
-
-        SetConsoleCursorPosition(hOutput, new_coord);
-        WriteConsole( hOutput, "o", 1, NULL, NULL );
-
-        SetConsoleCursorPosition(hOutput, hide_coord);
+    if (old_coord.X == new_coord.X && old_coord.Y == new_coord.Y) {
+        return true;
     }
+
+    if (new_coord.X < 0) {
+        new_coord.X = 0;
+        angle = 3 * PI - angle;
+    }
+    else if (new_coord.Y < 0) {
+        new_coord.Y = 0;
+        angle = 2 * PI - angle;
+    }
+    else if (new_coord.X >= actual_width + 1) {
+        new_coord.X = actual_width;
+        angle = PI - angle;
+    }
+    else if (new_coord.Y >= actual_height + 1) {
+        new_coord.Y = actual_height;
+        angle = 2 * PI - angle;
+    }
+
+    SetConsoleCursorPosition(hOutput, old_coord);
+    WriteConsole( hOutput, " ", 1, NULL, NULL );
+
+    SetConsoleCursorPosition(hOutput, new_coord);
+    WriteConsole( hOutput, "o", 1, NULL, NULL );
+
+    SetConsoleCursorPosition(hOutput, hide_coord);
 
     return true;
 }
 
-void main( void )
+void main(void)
 {
     printf("Enter start angle in radians relative to horizonal axis:\n");
     scanf("%lf", &angle);
@@ -112,9 +111,11 @@ void main( void )
     printf("Enter friction coefficient:\n");
     scanf("%lf", &u);
 
+    system("cls");
+
     pos = pos_start;
 
-    HANDLE hOutput = (HANDLE)GetStdHandle( STD_OUTPUT_HANDLE );
+    HANDLE hOutput = (HANDLE)GetStdHandle(STD_OUTPUT_HANDLE);
 
     CONSOLE_SCREEN_BUFFER_INFO SBInfo;
     
@@ -123,14 +124,8 @@ void main( void )
     actual_width = SBInfo.srWindow.Right;
     actual_height = SBInfo.srWindow.Bottom;
 
-    COORD sPos;
-    sPos.X = 5;
-    sPos.Y = 10;
-    SetConsoleCursorPosition( hOutput, sPos );
-
-    // Set the color to bright green
-    SetConsoleTextAttribute( hOutput,
-    FOREGROUND_INTENSITY | FOREGROUND_GREEN );
+    SetConsoleTextAttribute(hOutput,
+        FOREGROUND_INTENSITY | FOREGROUND_GREEN);
 
     CONSOLE_FONT_INFO info;
     GetCurrentConsoleFont(hOutput, false, &info);
