@@ -6,23 +6,21 @@
 #include <math.h>
 
 #define PI 3.14159265358979323846
-#define g 1
+#define g 2
 
 typedef struct _FLOATING_COORD {
     double X;
     double Y;
 } FLOATING_COORD;
 
-const double speed_start = 20;
 const FLOATING_COORD pos_start = {5, 10};
-const double angle_start = PI / 4;
-const double mass = 20;
-const double u = 0.1;
 const double width = 70;
 const double timestep = 0.01; // s
 
 const COORD hide_coord = {0, 0};
 
+double mass = 20;
+double u = 0.1;
 double speed;
 FLOATING_COORD pos;
 double angle;
@@ -105,9 +103,14 @@ bool move(HANDLE hOutput) {
 
 void main( void )
 {
-    // TODO: enter width from console
-    speed = speed_start; // TODO: enter from console
-    angle = angle_start; // TODO: enter from console
+    printf("Enter start angle in radians relative to horizonal axis:\n");
+    scanf("%lf", &angle);
+    printf("Enter start speed:\n");
+    scanf("%lf", &speed);
+    printf("Enter mass:\n");
+    scanf("%lf", &mass);
+    printf("Enter friction coefficient:\n");
+    scanf("%lf", &u);
 
     pos = pos_start;
 
